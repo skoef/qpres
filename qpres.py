@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
+# vim: set noexpandtab
+
+import getopt
 import os, textwrap, sys, tty, termios
 
 class QPres:
-	def __init__(self, pages):
+	def __init__(self):
 		# set defaults
 		self.title = 'Qpres'
 		self.columns = 80
 		self.lines = 25
 		self.footer = 'github.com/skoef/qpres'
-		self.showPages = True
+		self.showPages = False
 		self.pagesPrefix = 'Page '
 
 		self.index = 0
-		self.pages = pages
+		self.pages = []
 
 	def readStroke(self):
 		fd = sys.stdin.fileno()
@@ -41,7 +44,12 @@ class QPres:
 			# clear screen
 			os.system('clear')
 
-			currentPage = self.pages[self.index]
+			try:
+				currentPage = self.pages[self.index]
+			except IndexError:
+				print "page %d could not be found" % self.index
+				sys.exit(2)
+
 			try:
 				# open page content
 				file = open(currentPage, 'r')
@@ -77,12 +85,41 @@ class QPres:
 			elif command == 'q':
 				break
 
-# get terminal size
-import struct, fcntl
-size = struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))
+def usage():
+	print """Usage: %s [-t title] [-f footer] [-l lines] [-c columns] slide.txt [slide2.txt [slide3.txt]]
 
-q = QPres(['slide0.txt', 'slide1.txt', 'slide2.txt'])
-q.title = 'My presentation'
-q.lines = int(size[0]) - 1
-q.columns = int(size[1])
-q.run()
+	-t title   : title of the presentation                     [default: Qpres]
+	-f footer  : footer text                                   [default: link to github]
+	-l lines   : number of lines to use for the presentation   [default: 25]
+	-c columns : number of columns to use for the presentation [default: 80]
+	-p         : show pages in upper right corner              [default: False]
+	-h         : show this help message
+	""" % os.path.basename(sys.argv[0])
+
+if __name__ == '__main__':
+	# parse command line
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 't:f:l:c:ph', [])
+	except getopt.GetoptError, e:
+		print "Error: %s" % e
+		usage()
+		sys.exit(2)
+
+	q = QPres()
+	for o,a in opts:
+		if o == '-t':
+			q.title = a
+		elif o == '-f':
+			q.footer = a
+		elif o == '-l':
+			q.lines = int(a)
+		elif o == '-c':
+			q.columns = int(a)
+		elif o == '-p':
+			q.showPages = True
+		elif o == '-h':
+			usage()
+			sys.exit(0)
+
+	q.pages = args
+	q.run()
