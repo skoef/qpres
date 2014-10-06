@@ -11,7 +11,8 @@ class QPres:
 		self.title = 'Qpres'
 		self.columns = 80
 		self.lines = 25
-		self.footer = 'github.com/skoef/qpres'
+		self.footer = ''
+		self.copyright = 'github.com/skoef/qpres'
 		self.showPages = False
 		self.pagesPrefix = 'Page '
 
@@ -37,7 +38,7 @@ class QPres:
 		return left + right + "\n" + ('-' * self.columns)
 
 	def getFooter(self):
-		return ('-' * self.columns) + "\n" + self.footer.rjust(self.columns)
+		return ('-' * self.columns) + "\n" + self.footer.ljust((self.columns/2)) + self.copyright.rjust(self.columns/2)
 
 	def run(self):
 		while True:
